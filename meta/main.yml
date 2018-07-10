@@ -1,4 +1,5 @@
 galaxy_info:
+  name: docker-systemd-service
   author: Moshe Immerman
   description: Ansible module for installing and running docker containers as systemd services
   license: Apache
@@ -9,5 +10,5 @@ galaxy_info:
   galaxy_tags:
     - docker
     - systemd
-  # dependencies:
-    # - moshloop.systemd
+  dependencies:
+    - moshloop.systemd
