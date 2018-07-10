@@ -1,0 +1,28 @@
+# you can't pass a dictionary directly to include_role using vars: args,
+# so we need to use a "handovere variable" see https://github.com/ansible/ansible/issues/19084
+- set_fact: {"{{ handover_item.key }}": "{{ handover_item.value }}"}
+  with_dict: "{{ handover }}"
+  loop_control:
+    loop_var: handover_item
+  when: handover is defined
+
+
+- debug:
+    msg: "{{service}}: {{image}}"
+
+
+- copy:
+    dest: /etc/environment.{{service}}
+    content: |
+      {% for k in env %}
+      {{k}}={{env[k]}}
+      {% endfor %}
+
+- systemd_service:
+    Name: "{{service}}"
+    ExecStart: /usr/bin/docker run --rm --name {{service}}  --env-file /etc/environment.{{service}} {{docker_args}} {{image}} {{args}}
+
+
+- systemd:
+    name: "{{service}}"
+    state: started

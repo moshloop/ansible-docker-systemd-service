@@ -1,0 +1,13 @@
+---
+- hosts: localhost
+  remote_user: root
+  roles:
+    - moshloop.systemd
+  tasks:
+    - include_role: name=../..
+      vars:
+        image: nginx
+        service: nginx
+        env:
+          DOMAIN: localhost.com
+
