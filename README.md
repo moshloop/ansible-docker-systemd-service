@@ -1,4 +1,4 @@
-##  moshloop.systemd-docker-service
+##  moshloop.systemd_docker_service
  [![Build Status](https://travis-ci.org/moshloop/ansible-docker-systemd-service.svg?branch=master)](https://travis-ci.org/moshloop/ansible-docker-systemd-service)
 
 An ansible role that runs a container using docker as a systemd service
@@ -22,7 +22,7 @@ An ansible role that runs a container using docker as a systemd service
   roles:
     - moshloop.systemd
   tasks:
-    - include_role: name=moshloop.systemd-docker-service
+    - include_role: name=moshloop.docker_systemd_service
       vars:
       	containers:
          - image: nginx
@@ -32,6 +32,6 @@ An ansible role that runs a container using docker as a systemd service
          - image: nginx
            service: nginx2
            docker_args: -p 8080:80
-        
+
 ```
 
