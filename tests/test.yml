@@ -6,8 +6,16 @@
   tasks:
     - include_role: name=../..
       vars:
-        image: nginx
-        service: nginx
-        env:
-          DOMAIN: localhost.com
-
+        containers:
+        - image: nginx
+          service: nginx
+          env:
+            DOMAIN: localhost.com
+          docker_opts: -H unix:///tmp/var/run/docker.sock
+          docker_args: -p 8081:80
+        - image: nginx
+          service: nginx2
+          env:
+            DOMAIN: localhost.com
+          docker_opts: -H unix:///tmp/var/run/docker.sock
+          docker_args: -p 8082:80

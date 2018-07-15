@@ -1,0 +1,22 @@
+- debug:
+    msg: "{{container.service}}: {{container.image}}"
+
+- file:
+    name: /etc/environment.{{container.service}}
+    state: touch
+
+- copy:
+    dest: /etc/environment.{{container.service}}
+    content: |
+      {% for k in env %}
+      {{k}}={{container.env[k]}}
+      {% endfor %}
+  when: container.env is defined
+
+- systemd_service:
+    Name: "{{container.service}}"
+    ExecStart: /usr/bin/docker {{container.docker_opts | default('')}} run --rm --name {{container.service}}  --env-file /etc/environment.{{container.service}} {{container.docker_args | default('')}} {{container.image}} {{container.args | default('')}}
+
+- systemd:
+    name: "{{container.service}}"
+    state: started

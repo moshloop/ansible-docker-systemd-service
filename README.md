@@ -3,14 +3,15 @@
 
 An ansible role that runs a container using docker as a systemd service
 
-### Arguments
+### Container Arguments
 
 | Argument       | Default              | Description |
 | -------------- | -------------------- | ----------- |
 | **image**        | [Required]           | Docker image to run  |
 | **service** | [Required]       | The name of the systemd service |
 | env     |                      | A dictionary of environment variables to pass through |
-| docker_args |                      | Additional arguments to the docker client |
+| docker_args |                      | Additional arguments to the docker client e.g. `-p 8080:8080` |
+| docker_opts | | Additional options to the docker client e.g. `-H unix:///tmp/var/run/docker.sock` |
 | args |                   | Additional arguments to the container |
 
 ### Example
@@ -18,15 +19,19 @@ An ansible role that runs a container using docker as a systemd service
 ```yaml
 ---
 - hosts: localhost
-  remote_user: root
   roles:
     - moshloop.systemd
   tasks:
-    - include_role: name=../..
+    - include_role: name=moshloop.systemd-docker-service
       vars:
-        image: nginx
-        service: nginx
-        env:
-          DOMAIN: localhost.com
+      	containers:
+         - image: nginx
+           service: nginx
+           env:
+             DOMAIN: localhost.com
+         - image: nginx
+           service: nginx2
+           docker_args: -p 8080:80
+        
 ```
 
