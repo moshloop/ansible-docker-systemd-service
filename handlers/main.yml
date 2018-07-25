@@ -1,0 +1,9 @@
+
+  - name: restart service
+    service: name="{{container.service}}" state=restarted
+    listen: "restart service "
+    with_items: "{{containers}}"
+    loop_control:
+      loop_var: container
+    no_log: true
+  

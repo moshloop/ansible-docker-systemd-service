@@ -1,4 +1,6 @@
 
+
+- include_role: name=moshloop.systemd
 # you can't pass a dictionary directly to include_role using vars: args,
 # so we need to use a "handovere variable" see https://github.com/ansible/ansible/issues/19084
 - set_fact: {"{{ handover_item.key }}": "{{ handover_item.value }}"}
@@ -7,7 +9,12 @@
     loop_var: handover_item
   when: handover is defined
 
-- include_tasks: './_service.yml'
+- copy:
+    dest: /etc/docker/daemon.json
+    content: "{{dockerd_args | to_nice_json }}"
+  when: dockerd_args is defined
+
+- include_tasks: '_service.yml'
   with_items: "{{containers}}"
   loop_control:
     loop_var: container

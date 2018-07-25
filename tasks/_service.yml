@@ -5,18 +5,31 @@
     name: /etc/environment.{{container.service}}
     state: touch
 
-- copy:
+- name: Creating /etc/environment.{{container.service}}
+  copy:
     dest: /etc/environment.{{container.service}}
     content: |
-      {% for k in env %}
+      {% for k in container.env | default ({}) %}
       {{k}}={{container.env[k]}}
       {% endfor %}
-  when: container.env is defined
+  notify: restart service
+
+- set_fact: 
+    volumes: ""
+- set_fact: 
+    volumes: "{{volumes}} -v {{item}}"
+  with_items: "{{container.volumes | default([])}}"
 
 - systemd_service:
     Name: "{{container.service}}"
-    ExecStart: /usr/bin/docker {{container.docker_opts | default('')}} run --rm --name {{container.service}}  --env-file /etc/environment.{{container.service}} {{container.docker_args | default('')}} {{container.image}} {{container.args | default('')}}
+    ExecStart: /usr/bin/docker {{container.docker_opts | default('')}} run --rm --name {{container.service}}  --env-file /etc/environment.{{container.service}} {{container.docker_args | default('')}} {{volumes}} {{container.image}} {{container.args | default('')}}
+  notify: restart service
+
+- systemd:
+    name: docker
+    enabled: yes
+    state: started
 
 - systemd:
     name: "{{container.service}}"
-    state: started
+    enabled: yes
