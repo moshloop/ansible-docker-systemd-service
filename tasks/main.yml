@@ -12,6 +12,7 @@
 - copy:
     dest: /etc/docker/daemon.json
     content: "{{dockerd_args | to_nice_json }}"
+  notify: restart docker
   when: dockerd_args is defined
 
 - include_tasks: '_service.yml'

@@ -6,4 +6,7 @@
     loop_control:
       loop_var: container
     no_log: true
-  
+
+  - name: restart docker
+    service: name=docker state=restarted
+    listen: "restart docker "

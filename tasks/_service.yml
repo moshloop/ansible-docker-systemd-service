@@ -4,6 +4,7 @@
 - file:
     name: /etc/environment.{{container.service}}
     state: touch
+  changed_when: false
 
 - name: Creating /etc/environment.{{container.service}}
   copy:
@@ -14,9 +15,9 @@
       {% endfor %}
   notify: restart service
 
-- set_fact: 
+- set_fact:
     volumes: ""
-- set_fact: 
+- set_fact:
     volumes: "{{volumes}} -v {{item}}"
   with_items: "{{container.volumes | default([])}}"
 
@@ -33,3 +34,7 @@
 - systemd:
     name: "{{container.service}}"
     enabled: yes
+
+- systemd:
+    name: "{{container.service}}"
+    state: started
