@@ -13,6 +13,10 @@ An ansible role that runs a container using docker as a systemd service
 | docker_args |                      | Additional arguments to the docker client e.g. `-p 8080:8080` |
 | docker_opts | | Additional options to the docker client e.g. `-H unix:///tmp/var/run/docker.sock` |
 | args |                   | Additional arguments to the container |
+| volumes |                |                                       |
+| ports |                |                                       |
+| links |                |                                       |
+
 
 ### Example
 

@@ -2,3 +2,4 @@
 args: ""
 docker_args: ""
 env: {}
+network_name: user-bridge

@@ -1,42 +1,73 @@
+- set_fact:
+    image: "{{ container.image }}"
+    service: "{{ container.service | default(container.image | basename) }}"
+    docker_opts: "{{ container.docker_opts | default('')}}"
+    docker_args: "{{ container.docker_args | default('')}}"
+    args: "{{ container.args | default('')}}"
+    network: "{{container.network | default(network_name) }}"
+    volumes: ""
+    ports: ""
+
+- set_fact:
+    service: "{{service | split(':') | first }}"
+
 - debug:
-    msg: "{{container.service}}: {{container.image}}"
+    msg: "{{service}}: {{image}}"
 
 - file:
-    name: /etc/environment.{{container.service}}
+    name: /etc/environment.{{service}}
     state: touch
   changed_when: false
 
-- name: Creating /etc/environment.{{container.service}}
+- name: Creating /etc/environment.{{service}}
   copy:
-    dest: /etc/environment.{{container.service}}
+    dest: /etc/environment.{{service}}
     content: |
-      {% for k in container.env | default ({}) %}
-      {{k}}={{container.env[k]}}
+      {% for k in container.env | default({}) %}
+      {{k}}={{ container.env[k] }}
       {% endfor %}
-  notify: restart service
+      {% for k in container.environment | default({}) %}
+      {{k}}={{ container.environment[k] }}
+      {% endfor %}
+  register: env
 
-- set_fact:
-    volumes: ""
 - set_fact:
     volumes: "{{volumes}} -v {{item}}"
   with_items: "{{container.volumes | default([])}}"
 
-- systemd_service:
-    Name: "{{container.service}}"
-    ExecStart: /usr/bin/docker {{container.docker_opts | default('')}} run --rm --name {{container.service}}  --env-file /etc/environment.{{container.service}} {{container.docker_args | default('')}} {{volumes}} {{container.image}} {{container.args | default('')}}
+- set_fact:
+    ports: "{{ports}} -p {{item}}"
+  with_items: "{{container.ports | default([])}}"
+
+- name: "{{service}}"
+  systemd_service:
+    Name: "{{service}}"
+    ExecStart: /usr/bin/docker {{docker_opts}} run --rm --name {{service}} --env-file /etc/environment.{{service}} {{docker_args}} {{volumes}} --network {{network}} {{ports}} {{image}} {{args}}
     UnitArgs:
-      Requires: docker.service
-  notify: restart service
+      After: docker.service
+      Wants: docker.service
+    ServiceArgs:
+      RestartSec: 31
+  register: systemd_service
 
 - systemd:
     name: docker
     enabled: yes
     state: started
+  failed_when: false # docker is not necessarily running local
 
 - systemd:
-    name: "{{container.service}}"
+    name: "{{service}}"
     enabled: yes
+    daemon_reload: true
 
 - systemd:
-    name: "{{container.service}}"
+    name: "{{service}}"
     state: started
+    daemon_reload: true
+
+- systemd:
+    name: "{{service}}"
+    state: restarted
+    daemon_reload: true
+  when: systemd_service.changed or env.changed

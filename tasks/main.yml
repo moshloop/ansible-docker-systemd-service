@@ -2,20 +2,44 @@
 
 - include_role: name=moshloop.systemd
 # you can't pass a dictionary directly to include_role using vars: args,
-# so we need to use a "handovere variable" see https://github.com/ansible/ansible/issues/19084
+# so we need to use a "handover variable" see https://github.com/ansible/ansible/issues/19084
 - set_fact: {"{{ handover_item.key }}": "{{ handover_item.value }}"}
   with_dict: "{{ handover }}"
   loop_control:
     loop_var: handover_item
   when: handover is defined
 
+- file: path=/etc/docker state=directory
+  when: dockerd_args is defined
+
 - copy:
     dest: /etc/docker/daemon.json
     content: "{{dockerd_args | to_nice_json }}"
-  notify: restart docker
   when: dockerd_args is defined
+
+- name: Create user-defined network {{network_name}}
+  docker_network:
+    name: "{{network_name}}"
+
+
+# - name: Enable forwarding for docker containers
+#   systemd_service:
+#     Name: docker-iptables
+#     ExecStart: /sbin/iptables -P FORWARD ACCEPT
+#     UnitArgs:
+#       After: network-online.target
+#       Wants: network-online.target
+
+- sysctl:
+    name: net.ipv4.conf.all.forwarding
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+
 
 - include_tasks: '_service.yml'
   with_items: "{{containers}}"
   loop_control:
     loop_var: container
+  when: containers is defined
