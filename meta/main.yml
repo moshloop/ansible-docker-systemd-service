@@ -1,5 +1,5 @@
 galaxy_info:
-  role_name: docker-systemd-service
+  role_name: systemd-docker-service
   author: Moshe Immerman
   description: Ansible module for installing and running docker containers as systemd services
   license: Apache
